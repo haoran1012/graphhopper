@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.hppc.HppcModule;
 
 public class EncodedValueSerializer {
     private final static ObjectMapper MAPPER = new ObjectMapper();
@@ -31,6 +32,7 @@ public class EncodedValueSerializer {
     static {
         MAPPER.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
         MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        MAPPER.registerModule(new HppcModule());
     }
 
     public static String serializeEncodedValue(EncodedValue encodedValue) {

@@ -1,10 +1,15 @@
 package com.graphhopper.routing.ev;
 
+import com.carrotsearch.hppc.ObjectIntHashMap;
+import com.carrotsearch.hppc.ObjectIntMap;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.graphhopper.storage.IntsRef;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This class holds a List of up to {@link #maxValues} encountered Strings and stores
@@ -16,7 +21,7 @@ import java.util.*;
 public final class StringEncodedValue extends IntEncodedValueImpl {
     private final int maxValues;
     private final List<String> values;
-    private final Map<String, Integer> indexMap;
+    private final ObjectIntMap<String> indexMap;
 
     public StringEncodedValue(String name, int expectedValueCount) {
         this(name, expectedValueCount, false);
@@ -27,7 +32,7 @@ public final class StringEncodedValue extends IntEncodedValueImpl {
 
         this.maxValues = roundUp(expectedValueCount);
         this.values = new ArrayList<>(maxValues);
-        this.indexMap = new HashMap<>(maxValues);
+        this.indexMap = new ObjectIntHashMap<>(maxValues);
     }
 
     public StringEncodedValue(String name, int bits, List<String> values, boolean storeTwoDirections) {
@@ -39,7 +44,7 @@ public final class StringEncodedValue extends IntEncodedValueImpl {
                     + values.size() + " > " + maxValues);
 
         this.values = new ArrayList<>(values);
-        this.indexMap = new HashMap<>(values.size());
+        this.indexMap = new ObjectIntHashMap<>(values.size());
         int index = 1;
         for (String value : values) {
             indexMap.put(value, index++);
@@ -56,7 +61,7 @@ public final class StringEncodedValue extends IntEncodedValueImpl {
             @JsonProperty("storeTwoDirections") boolean storeTwoDirections,
             @JsonProperty("maxValues") int maxValues,
             @JsonProperty("values") List<String> values,
-            @JsonProperty("indexMap") HashMap<String, Integer> indexMap) {
+            @JsonProperty("indexMap") ObjectIntMap indexMap) {
         super(name, bits, minValue, maxValue, negateReverseDirection, storeTwoDirections);
         if (values.size() > maxValues)
             throw new IllegalArgumentException("Number of values is higher than the maximum value count: "
@@ -71,7 +76,7 @@ public final class StringEncodedValue extends IntEncodedValueImpl {
             super.setInt(reverse, ref, 0);
             return;
         }
-        int index = indexMap.getOrDefault(value, 0);
+        int index = indexMap.get(value);
         if (index == 0) {
             if (values.size() == maxValues)
                 throw new IllegalStateException("Maximum number of values reached for " + getName() + ": " + maxValues);
@@ -104,7 +109,7 @@ public final class StringEncodedValue extends IntEncodedValueImpl {
      * @return the non-zero index of the String or <i>0</i> if it couldn't be found
      */
     public int indexOf(String value) {
-        return indexMap.getOrDefault(value, 0);
+        return indexMap.get(value);
     }
 
     /**
